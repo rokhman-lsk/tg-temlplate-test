@@ -2,7 +2,11 @@
 from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
+import pprint
 
+USERS = {
+
+}
 
 class UserAcl(BaseMiddleware):
     """Проверка юзера на вхождение в acl и инкрементирование счетчика действий юзера."""
@@ -18,6 +22,15 @@ class UserAcl(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
+        admins = self.config.admin
+        permit_users = self.config.acl.permit
+        deny_users = self.config.acl.deny
+
+        user_tg_id = data['event_from_user'].id
+
+        self.logger.info(
+            'Action from user tg_id=%s', user_tg_id
+        )
 
         if not USERS.get(data['event_from_user'].id):
             USERS[data['event_from_user'].id] = {
@@ -26,13 +39,26 @@ class UserAcl(BaseMiddleware):
             }
         else:
             USERS[data['event_from_user'].id]['event_counter'] += 1
-        if not self.config.acl.tg_id:
-            self.logger.info('ACL is empty!')
-            await handler(event, data)
-        else:
-            if data['event_from_user'].id in self.config.acl.tg_id:
-                await handler(event, data)
-            else:
-                self.logger.info('User (%s) is not in ACL!', data['event_from_user'])
-        import pprint
+
         pprint.pprint(USERS)
+
+        if not admins:
+            if user_tg_id in admins:
+                await handler(event, data)
+                return
+
+        if not deny_users:
+            if user_tg_id in deny_users:
+                self.logger.info(
+                    'User with tg_id=%s is not in acl!', user_tg_id
+                )
+                return
+
+        if not permit_users:
+            if not user_tg_id in permit_users:
+                self.logger.info(
+                    'User with tg_id=%s is not in acl!', user_tg_id
+                )
+                return
+
+        await handler(event, data)

@@ -1,18 +1,28 @@
-"""Определяет различные струкутры и классы для описания объектов в коде."""
-from typing import List, Literal, Optional, Union
+"""Определяет различные струкутры и классы для предствления конфигурации в виде объектов."""
+from typing import List, Literal
+from typing_extensions import Self
 from enum import Enum
-from pydantic import SecretStr, BaseModel, field_validator, Field
+from pydantic import SecretStr, BaseModel, field_validator, model_validator
+
 
 
 LogLevel = Literal['debug', 'info', 'warning', 'error', 'critical']
 
 
-# class AccessList(BaseModel):
-#     """
-#     Список tg_id, у которых есть доступ к боту.
-#     По дефолту список пустой, доступ к боту открыт всем.
-#     """
-#     tg_id: List[int] = []
+class AccessList(BaseModel):
+    """
+    Список tg_id, у которых есть доступ к боту и у которых его нет.
+    По дефолту список пустой, доступ к боту открыт всем.
+    """
+    permit: List[int] = []
+    deny: List[int] = []
+
+    @model_validator(mode='after')
+    def validate_acl(self) -> Self:
+        """Проверка на то, что permit и deny не определены одновременно."""
+        if self.permit and self.deny:
+            raise ValueError("Fields 'permit', 'deny' are mutually exclusive")
+        return self
 
 
 class LogConfig(BaseModel):
@@ -22,18 +32,13 @@ class LogConfig(BaseModel):
     fmt: str = '%(asctime)s\t%(name)s\t%(levelname)s\t[%(filename)s:%(lineno)d]\t%(message)s'
     date_fmt: str = '%Y-%m-%dT%H:%M:%S'
 
-    @field_validator('level')
-    def validate_log_level(cls, value: LogLevel):
-        """Проверка допустимого уровня логирования."""
-        return value
-
 
 class Config(BaseModel):
-    """Класс для описания конфигурации и типов ее значений."""
+    """Класс для описания конфигурации."""
     bot_token: SecretStr
-    # acl: AccessList = AccessList()
-    log: LogConfig = LogConfig()
     admin: List[int] = []
+    acl: AccessList = AccessList()
+    log: LogConfig = LogConfig()
 
     @field_validator('bot_token')
     def validate_bot_token(cls, value: str):
