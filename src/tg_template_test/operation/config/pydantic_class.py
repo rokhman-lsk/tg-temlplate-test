@@ -1,36 +1,39 @@
 """Определяет различные струкутры и классы для описания объектов в коде."""
 from typing import List, Literal, Optional, Union
 from enum import Enum
-from pydantic import SecretStr, BaseModel, field_validator
+from pydantic import SecretStr, BaseModel, field_validator, Field
 
-
-# Конфигурация бота
-class AccessList(BaseModel):
-    """
-    Список tg_id, у которых есть доступ к боту.
-    По дефолту список пустой, доступ к боту открыт всем.
-    """
-    tg_id: List[int] = []
 
 LogLevel = Literal['debug', 'info', 'warning', 'error', 'critical']
 
+
+# class AccessList(BaseModel):
+#     """
+#     Список tg_id, у которых есть доступ к боту.
+#     По дефолту список пустой, доступ к боту открыт всем.
+#     """
+#     tg_id: List[int] = []
+
+
 class LogConfig(BaseModel):
     """Поля для настройки логгирования бота."""
-    file_path: str = './tg-bot.log'
+    file_path: str = '/var/log/tg-template-test/bot.log'
     level: LogLevel = 'info'
-    fmt: LogLevel = '%(asctime)s\t%(name)s\t%(levelname)s\t[%(filename)s:%(lineno)d]\t%(message)s'
-    date_fmt: LogLevel = '%Y-%m-%dT%H:%M:%S'
+    fmt: str = '%(asctime)s\t%(name)s\t%(levelname)s\t[%(filename)s:%(lineno)d]\t%(message)s'
+    date_fmt: str = '%Y-%m-%dT%H:%M:%S'
 
     @field_validator('level')
     def validate_log_level(cls, value: LogLevel):
         """Проверка допустимого уровня логирования."""
         return value
 
+
 class Config(BaseModel):
     """Класс для описания конфигурации и типов ее значений."""
     bot_token: SecretStr
-    acl: AccessList = AccessList()
+    # acl: AccessList = AccessList()
     log: LogConfig = LogConfig()
+    admin: List[int] = []
 
     @field_validator('bot_token')
     def validate_bot_token(cls, value: str):

@@ -1,4 +1,4 @@
-"""Модуль парсинга конфигурации"""
+"""Модуль парсинга конфигурации."""
 import sys
 from logging import Logger
 import yaml

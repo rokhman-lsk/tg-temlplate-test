@@ -1,9 +1,7 @@
 """Модуль для встраивания логики в мидлварь."""
-from aiogram import BaseMiddleware
 from typing import Any, Awaitable, Callable, Dict
+from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
-from db.memory import USERS
-
 
 
 class UserAcl(BaseMiddleware):
@@ -20,6 +18,7 @@ class UserAcl(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
+
         if not USERS.get(data['event_from_user'].id):
             USERS[data['event_from_user'].id] = {
                 'object': data['event_from_user'],
