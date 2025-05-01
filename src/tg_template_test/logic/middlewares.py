@@ -44,23 +44,22 @@ class UserAcl(BaseMiddleware):
 
         pprint.pprint(USERS)
 
-        if not admins:
+        if admins:
             if user_tg_id in admins:
-                await handler(event, data)
-                return
+                return await handler(event, data)
 
-        if not deny_users:
+        if deny_users:
             if user_tg_id in deny_users:
                 self.logger.info(
                     'User with tg_id=%s is not in acl!', user_tg_id
                 )
                 return
 
-        if not permit_users:
+        if permit_users:
             if not user_tg_id in permit_users:
                 self.logger.info(
                     'User with tg_id=%s is not in acl!', user_tg_id
                 )
                 return
 
-        await handler(event, data)
+        return await handler(event, data)
