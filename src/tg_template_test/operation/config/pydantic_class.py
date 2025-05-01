@@ -1,9 +1,10 @@
 """Определяет различные струкутры и классы для описания объектов в коде."""
-from typing import List, Literal
+from typing import List, Literal, Optional, Union
+from enum import Enum
 from pydantic import SecretStr, BaseModel, field_validator
 
-# Конфигурация бота
 
+# Конфигурация бота
 class AccessList(BaseModel):
     """
     Список tg_id, у которых есть доступ к боту.
@@ -17,6 +18,8 @@ class LogConfig(BaseModel):
     """Поля для настройки логгирования бота."""
     file_path: str = './tg-bot.log'
     level: LogLevel = 'info'
+    fmt: LogLevel = '%(asctime)s\t%(name)s\t%(levelname)s\t[%(filename)s:%(lineno)d]\t%(message)s'
+    date_fmt: LogLevel = '%Y-%m-%dT%H:%M:%S'
 
     @field_validator('level')
     def validate_log_level(cls, value: LogLevel):
@@ -35,3 +38,19 @@ class Config(BaseModel):
         if not value:
             raise ValueError('Bot token must not be empty!')
         return value
+
+
+# Телеграм юзер
+# https://core.telegram.org/constructor/user
+class UserStatus(Enum):
+    """Перечисление статусов телеграм юзера"""
+    ONLINE = 0
+    OFFLINE = 1
+    RECENTLY = 2
+    LAST_WEEK = 3
+    LAST_MONTH = 4
+    LONG_AGO = 5
+    BOT = 6
+    DELETED = 7
+    PHONE_NUMBER_CONFIRMED = 8
+    EMPTY = 9
