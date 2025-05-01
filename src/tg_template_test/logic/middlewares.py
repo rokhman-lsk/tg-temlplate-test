@@ -1,12 +1,14 @@
 """Модуль для встраивания логики в мидлварь."""
 from typing import Any, Awaitable, Callable, Dict
+import pprint
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
-import pprint
+
 
 USERS = {
 
 }
+
 
 class UserAcl(BaseMiddleware):
     """Проверка юзера на вхождение в acl и инкрементирование счетчика действий юзера."""
